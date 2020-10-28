@@ -1,0 +1,24 @@
+name: General workflow
+on:
+  push:
+    branches:
+      - '*'
+      - '!*tags*'
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout project
+        uses: actions/checkout@v1
+      - name: Cache build output
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+      - name: Build project
+        run: cargo build --release
+      - name: Test project
+        run: cargo test --release

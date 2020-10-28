@@ -1,5 +1,5 @@
-pub mod ml;
+pub mod nn;
 
 fn main() {
-  println!("Hello, world!");
+  println!("Hello world!")
 }
