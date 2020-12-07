@@ -1,16 +1,24 @@
+/// Connection model for neural network.
+
 use crate::nn::neuron::Neuron;
 
+/// Connection between two neurons.
 pub struct Connection {
+  /// The input neuron.
   pub input: Neuron,
+  /// The output neuron.
   pub output: Neuron,
+  /// The weight value for this connection.
   pub weight: f32,
 }
 
 impl Connection {
+  /// Calculate the effective value for this connection.
   pub fn calculate(&self) -> f32 {
     self.input.calculate() * self.weight
   }
 
+  /// Make the output neuron for this connection stale.
   pub fn stale(&mut self) {
     self.output.stale()
   }

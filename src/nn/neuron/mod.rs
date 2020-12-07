@@ -1,3 +1,5 @@
+/// Neuron model for neural network.
+
 use std::rc::{Rc, Weak};
 use std::cell::RefCell;
 use crate::nn::connection::Connection;

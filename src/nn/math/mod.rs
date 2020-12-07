@@ -1,3 +1,5 @@
+/// Maths utilities.
+
 use std::f32::consts::E;
 
 pub trait Numeric {
