@@ -1,30 +1,35 @@
-use std::rc::Rc;
+use std::rc::{Rc, Weak};
+use std::cell::RefCell;
 use crate::nn::connection::Connection;
 use crate::nn::math::Numeric;
 
 #[derive(Default)]
 pub struct Neuron {
-  pub inputs: Vec<Rc<Connection>>,
-  pub outputs: Vec<Rc<Connection>>,
-  pub value: f32,
-  pub bias: f32,
-  pub stale: bool,
+  pub inputs: Vec<Weak<RefCell<Connection>>>,
+  pub outputs: Vec<Rc<RefCell<Connection>>>,
+  pub value: RefCell<f32>,
+  pub bias: RefCell<f32>,
+  pub stale: RefCell<bool>,
 }
 
 impl Neuron {
-  pub fn calculate(&mut self) -> f32 {
-    if self.stale {
-      let total: f32 = self.inputs.iter_mut().map(|i| Rc::get_mut(i).unwrap().calculate()).sum::<f32>() - self.bias;
-      self.value = total.sigmoid();
-      self.stale = false;
+  pub fn calculate(&self) -> f32 {
+    let mut is_stale = self.stale.borrow_mut();
+    let mut value = self.value.borrow_mut();
+    if *is_stale {
+      let inputs = self.inputs.iter();
+      let valid_inputs = inputs.filter_map(Weak::upgrade);
+      let total: f32 = valid_inputs.map(|i| i.borrow().calculate()).sum::<f32>() - *self.bias.borrow();
+      *value = total.sigmoid();
+      *is_stale = false;
     }
-    self.value
+    *value
   }
 
-  pub fn stale(&mut self) {
-    self.stale = true;
-    for output in &mut self.outputs {
-      Rc::get_mut(output).unwrap().stale();
+  pub fn stale(&self) {
+    *self.stale.borrow_mut() = true;
+    for output in &self.outputs {
+      output.borrow_mut().stale();
     }
   }
 }
@@ -35,18 +40,18 @@ mod tests {
 
   #[test]
   pub fn stalefn_makesneuron_stale() {
-    let mut neuron: Neuron = Neuron {
-      stale: false,
+    let neuron: Neuron = Neuron {
+      stale: false.into(),
       ..Neuron::default()
     };
     neuron.stale();
-    assert_eq!(neuron.stale, true, "Neuron.stale() did not make neuron stale.");
+    assert_eq!(*neuron.stale.borrow(), true, "Neuron.stale() did not make neuron stale.");
   }
 
   #[test]
   pub fn calculatefn_returnsexistingvaluefrom_freshneuron() {
-    let mut neuron: Neuron = Neuron {
-      value: 5.0,
+    let neuron: Neuron = Neuron {
+      value: 5.0.into(),
       ..Neuron::default()
     };
     assert_eq!(neuron.calculate(), 5.0, "Neuron.calculate() did not return fresh value.");
@@ -54,9 +59,9 @@ mod tests {
 
   #[test]
   pub fn calculatefn_returnsdefaultvaluefrom_staleneuronwithnoinputs() {
-    let mut neuron: Neuron = Neuron {
-      stale: true,
-      value: 5.0,
+    let neuron: Neuron = Neuron {
+      stale: true.into(),
+      value: 5.0.into(),
       ..Neuron::default()
     };
     assert_eq!(neuron.calculate(), 0.5, "Neuron.calculate() with no inputs did not return default value.");

@@ -7,7 +7,7 @@ pub struct Connection {
 }
 
 impl Connection {
-  pub fn calculate(&mut self) -> f32 {
+  pub fn calculate(&self) -> f32 {
     self.input.calculate() * self.weight
   }
 
@@ -33,7 +33,7 @@ mod tests {
   #[test]
   pub fn stalefn_makesoutputneuron_stale() {
     let neuron: Neuron = Neuron {
-      stale: false,
+      stale: false.into(),
       ..Neuron::default()
     };
 
@@ -43,18 +43,18 @@ mod tests {
     };
 
     connection.stale();
-    assert_eq!(connection.output.stale, true, "Connection.stale() did not make output neuron stale.");
+    assert_eq!(*connection.output.stale.borrow(), true, "Connection.stale() did not make output neuron stale.");
   }
 
   #[test]
   pub fn calculatefn_withdefaultweight_returnsinputvalue() {
     let neuron: Neuron = Neuron {
-      stale: false,
-      value: 5.0,
+      stale: false.into(),
+      value: 5.0.into(),
       ..Neuron::default()
     };
 
-    let mut connection: Connection = Connection {
+    let connection: Connection = Connection {
       input: neuron,
       ..Connection::default()
     };
@@ -65,12 +65,12 @@ mod tests {
   #[test]
   pub fn calculatefn_withweight_returnsweightedvalue() {
     let neuron: Neuron = Neuron {
-      stale: false,
-      value: 5.0,
+      stale: false.into(),
+      value: 5.0.into(),
       ..Neuron::default()
     };
 
-    let mut connection: Connection = Connection {
+    let connection: Connection = Connection {
       input: neuron,
       weight: 2.0,
       ..Connection::default()
