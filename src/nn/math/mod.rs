@@ -2,7 +2,9 @@
 
 use std::f32::consts::E;
 
+/// Numeric extension trait.
 pub trait Numeric {
+  /// Calculate the signmoid function for the current numeric value.
   fn sigmoid(&self) -> f32;
 }
 
